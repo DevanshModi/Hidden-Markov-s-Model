@@ -1,8 +1,3 @@
-############################################################
-# CMPSC 442: Homework 8
-############################################################
-
-student_name = "Devansh Modi"
 
 ############################################################
 # Imports
@@ -13,7 +8,7 @@ from collections import defaultdict
 import math
 
 ############################################################
-# Section 1: Hidden Markov Models
+# Hidden Markov Models
 ############################################################
 
 def load_corpus(path):
@@ -73,34 +68,13 @@ class Tagger(object):
             res.extend(answer)
 
         return res
-
+    
+    #TODO: Add the Viterbi Algorithm
     def viterbi_tags(self, tokens):
         pass
-
 
 
 c = load_corpus("brown-corpus.txt")
 t = Tagger(c)
 print t.most_probable_tags(["The", "blue", "bird", "sings"])
 #['DET', 'NOUN', 'VERB', '.']
-############################################################
-# Section 2: Feedback
-############################################################
-
-feedback_question_1 = """
-Type your response here.
-Your response may span multiple lines.
-Do not include these instructions in your response.
-"""
-
-feedback_question_2 = """
-Type your response here.
-Your response may span multiple lines.
-Do not include these instructions in your response.
-"""
-
-feedback_question_3 = """
-Type your response here.
-Your response may span multiple lines.
-Do not include these instructions in your response.
-"""
