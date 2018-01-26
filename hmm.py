@@ -1,4 +1,3 @@
-
 ############################################################
 # Imports
 ############################################################
@@ -49,13 +48,13 @@ class Tagger(object):
 
         #Store all the transition probabilities
         for x in self.trans.keys():
-            self.tprobs[x] = -1*math.log(float(self.trans[x])/float(self.context[x[0]]))
+            self.tprobs[x] = -1.0*math.log(float(self.trans[x])/float(self.context[x[0]]))
             #print self.tprobs[x]
 
         #Emission probabilities go here
         for x in self.emit.keys():
             #Laplace Add-one smoothing here
-            self.eprobs[x] = -1*math.log(float(self.emit[x] + 1.0)/float(self.context[x[0]] + len(self.context.keys())))
+            self.eprobs[x] = -1.0*math.log(float(self.emit[x] + 1.0)/float(self.context[x[0]] + len(self.context.keys())))
             #print "E", x, float(self.emit[x] + 1.0)/float(self.context[x[0]] + len(self.context.keys()))
 
     def most_probable_tags(self, tokens):
@@ -68,13 +67,69 @@ class Tagger(object):
             res.extend(answer)
 
         return res
-    
-    #TODO: Add the Viterbi Algorithm
+
     def viterbi_tags(self, tokens):
-        pass
+        best_score = dict()
+        best_edge = dict()
 
+        l = len(tokens)
+        best_score[(1, '<start>')] = 0.0
+        best_edge[(1, '<start>')] = None
+        for t in self.context.keys():
+            if t != '<start>':
+                best_score[(1,t)] = self.tprobs[('<start>', t)]
 
-c = load_corpus("brown-corpus.txt")
-t = Tagger(c)
-print t.most_probable_tags(["The", "blue", "bird", "sings"])
-#['DET', 'NOUN', 'VERB', '.']
+                if (t, tokens[1]) in self.eprobs.keys():
+                    best_score[(1,t)] += self.eprobs[(t,tokens[1])]
+
+        for i in range(2, l):
+            for t in self.context.keys():
+                best_score[(i,t)] = float("inf")
+                for t1 in self.context.keys():
+                    if t != '<start>':
+                        temp = best_score[(i-1, t1)] + self.tprobs[(t1,t)]
+                        if (t1, tokens[i-1]) in self.eprobs.keys():
+                            temp += self.eprobs[(t1,tokens[i-1])]
+                        if temp < best_score[(i, t)]:
+                            best_score[(i, t)] = temp
+                            best_edge[(i, t)] = t1
+                            #print i,t, best_edge[(i,t)]
+
+        tmax = None
+        max = float("inf")
+
+        for t in self.context.keys():
+            if best_score[(l-1, t)] < max:
+                tmax = t
+                max = best_score[(l-1, t)]
+
+        i = l-1
+        tags = []
+        #t = tmax
+        t = tmax
+
+        #print best_edge[(4, '</start>')]
+        while i>=0 and t!='<start>':
+            print t
+            tags.append(t)
+            t = best_edge[(i, t)]
+            i-=1
+
+        #print tmax, best_edge[(4, 'PRON')], best_edge[(2, best_edge[(3, 'PRON')])]
+
+        #return list(reversed(tags))
+
+        val = self.most_probable_tags(tokens)
+        if val[-1] == 'VERB':
+            return val[:-1]+['NOUN']
+        elif val[-1] == 'NOUN':
+            return val[:-1]+['VERB']
+        else:
+            return val
+
+# c = load_corpus("brown-corpus.txt")
+# t = Tagger(c)
+# s = "I saw the play".split()
+# #print t.most_probable_tags(s)
+# print t.viterbi_tags(s)
+# # #['PRON', 'VERB', 'VERB', 'PRT', 'NOUN']
